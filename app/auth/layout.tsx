@@ -1,5 +1,4 @@
-"use client"; // ✅ Add this to enable Client Components
-
+"use client"; 
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeProvider } from "@/components/theme-provider";

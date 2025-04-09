@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
 
+@layer utilities {
+  .border-border {
+    border-color: hsl(var(--border));
+  }
+}
 
 @layer base {
   :root {
