@@ -73,10 +73,10 @@ export default function ResetPasswordPage() {
                 <Send className="h-6 w-6 text-primary" />
               </div>
               <p>
-                We've sent a password reset link to <strong>{email}</strong>
+                We&apos;ve sent a password reset link to <strong>{email}</strong>
               </p>
               <p className="text-sm text-muted-foreground">
-                If you don't see the email, check your spam folder or try again with a different email address.
+                If you don&apos;t see the email, check your spam folder or try again with a different email address.
               </p>
             </div>
           ) : (
