@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Ripple } from "@/components/magicui/ripple";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -35,6 +36,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12 bg-gradient-to-b from-background to-muted/30 dark:from-background dark:to-background">
+      <Ripple/>
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
