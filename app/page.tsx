@@ -8,7 +8,7 @@ import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Ripple } from "@/components/magicui/ripple";
 
-export default function Home() {
+export default function HomePage() {
   const [mounted, setMounted] = useState(false)
 
   // Ensure hydration mismatch doesn't occur with theme
@@ -70,6 +70,7 @@ export default function Home() {
               Join Quiz <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          
         </motion.div>
       </motion.div>
 

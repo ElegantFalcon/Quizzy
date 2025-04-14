@@ -9,9 +9,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { DragHandleDots2Icon } from "@radix-ui/react-icons"
-import { BarChart3, Clock, Cloud, Cog, Layers, ListOrdered, MessageSquare, Plus, Trash2, Play } from "lucide-react"
+import { BarChart3, Clock, Cloud, Cog, Layers, ListOrdered, MessageSquare, Plus, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { UserProfile } from "@/components/user-profile"
 
 function CreateQuiz() {
     const [questions, setQuestions] = useState([
@@ -41,11 +42,7 @@ function CreateQuiz() {
                 </div>
                 <div className="flex items-center gap-3">
                     <ThemeToggle />
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button size="lg" className="gap-2">
-                            <Play className="h-4 w-4" /> Start Quiz
-                        </Button>
-                    </motion.div>
+                    <UserProfile />
                 </div>
             </div>
 
