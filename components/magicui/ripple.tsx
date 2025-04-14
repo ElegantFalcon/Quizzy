@@ -11,7 +11,7 @@ interface RippleProps extends ComponentPropsWithoutRef<"div"> {
 export const Ripple = React.memo(function Ripple({
   mainCircleSize = 300, // increased from 210
   mainCircleOpacity = 0.3,
-  numCircles = 10, // increased number of ripples
+  numCircles = 11, // increased number of ripples
   className,
   ...props
 }: RippleProps) {
