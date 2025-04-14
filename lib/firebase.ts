@@ -5,12 +5,12 @@ import { browserLocalPersistence, setPersistence } from "firebase/auth";
 
 // Replace with your actual config from Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSyDmBd80V7KlHSpurc9NQRvXAuD16N8Pdr8",
-  authDomain: "quizzy-4bbf4.firebaseapp.com",
-  projectId: "quizzy-4bbf4",
-  storageBucket: "quizzy-4bbf4.appspot.com",
-  //messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Add this if you have it
-  //appId: "YOUR_APP_ID", // Add this if you have it
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
