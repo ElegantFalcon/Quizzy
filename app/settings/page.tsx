@@ -33,18 +33,12 @@ function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full md:w-auto">
+        <TabsList className="grid grid-cols-2 md:grid-cols-3 w-full md:w-auto">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" /> Profile
           </TabsTrigger>
           <TabsTrigger value="account" className="flex items-center gap-2">
             <UserCog className="h-4 w-4" /> Account
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" /> Notifications
-          </TabsTrigger>
-          <TabsTrigger value="billing" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" /> Billing
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2">
             <Lock className="h-4 w-4" /> Security
@@ -260,197 +254,6 @@ function Settings() {
           </motion.div>
         </TabsContent>
 
-        <TabsContent value="notifications">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>Manage how and when you receive notifications</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="notifications">Enable Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications about your quizzes and account
-                    </p>
-                  </div>
-                  <Switch id="notifications" checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
-                </div>
-
-                <Separator />
-
-                <div className={notificationsEnabled ? "" : "opacity-50 pointer-events-none"}>
-                  <h3 className="text-lg font-medium mb-4">Email Notifications</h3>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="emailNotifications" className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" /> Quiz Activity
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive emails about quiz participation and results
-                        </p>
-                      </div>
-                      <Switch
-                        id="emailNotifications"
-                        checked={emailNotifications}
-                        onCheckedChange={setEmailNotifications}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="marketingEmails" className="flex items-center gap-2">
-                          <Globe className="h-4 w-4" /> Marketing & Updates
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive emails about new features and promotions
-                        </p>
-                      </div>
-                      <Switch id="marketingEmails" checked={marketingEmails} onCheckedChange={setMarketingEmails} />
-                    </div>
-                  </div>
-
-                  <Separator className="my-6" />
-
-                  <h3 className="text-lg font-medium mb-4">In-App Notifications</h3>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="participantJoins">Participant Joins</Label>
-                        <p className="text-sm text-muted-foreground">Notify when someone joins your quiz</p>
-                      </div>
-                      <Switch id="participantJoins" defaultChecked />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="quizCompleted">Quiz Completed</Label>
-                        <p className="text-sm text-muted-foreground">Notify when a quiz is completed</p>
-                      </div>
-                      <Switch id="quizCompleted" defaultChecked />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="commentsMentions">Comments & Mentions</Label>
-                        <p className="text-sm text-muted-foreground">Notify when someone comments or mentions you</p>
-                      </div>
-                      <Switch id="commentsMentions" defaultChecked />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end gap-2">
-                <Button variant="outline">Cancel</Button>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="gap-2">
-                    <Save className="h-4 w-4" /> Save Changes
-                  </Button>
-                </motion.div>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="billing">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing & Subscription</CardTitle>
-                <CardDescription>Manage your subscription and payment methods</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-muted/50 rounded-lg p-4 border">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-lg font-medium">Pro Plan</h3>
-                      <p className="text-sm text-muted-foreground">$19.99/month, billed monthly</p>
-                    </div>
-                    <Badge variant="outline" className="bg-primary/10 text-primary">
-                      Active
-                    </Badge>
-                  </div>
-                  <div className="mt-4 text-sm">
-                    <p>
-                      Your next billing date is <strong>June 15, 2023</strong>
-                    </p>
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Change Plan
-                    </Button>
-                    <Button variant="outline" size="sm" className="text-destructive">
-                      Cancel Subscription
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Payment Methods</h3>
-
-                  <div className="bg-card rounded-lg p-4 border flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-16 bg-muted rounded flex items-center justify-center">
-                        <CreditCard className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Visa ending in 4242</p>
-                        <p className="text-sm text-muted-foreground">Expires 12/2025</p>
-                      </div>
-                    </div>
-                    <Badge>Default</Badge>
-                  </div>
-
-                  <Button variant="outline" className="gap-2">
-                    <CreditCard className="h-4 w-4" /> Add Payment Method
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Billing History</h3>
-
-                  <div className="rounded-md border">
-                    <div className="flex flex-col">
-                      {[
-                        { date: "May 15, 2023", amount: "$19.99", status: "Paid" },
-                        { date: "Apr 15, 2023", amount: "$19.99", status: "Paid" },
-                        { date: "Mar 15, 2023", amount: "$19.99", status: "Paid" },
-                      ].map((invoice, index) => (
-                        <div
-                          key={index}
-                          className={`flex justify-between items-center p-4 ${index !== 2 ? "border-b" : ""}`}
-                        >
-                          <div>
-                            <p className="font-medium">Invoice #{2023050 + index}</p>
-                            <p className="text-sm text-muted-foreground">{invoice.date}</p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <p className="font-medium">{invoice.amount}</p>
-                            <Badge variant="outline" className="bg-green-500/10 text-green-500">
-                              {invoice.status}
-                            </Badge>
-                            <Button variant="ghost" size="sm">
-                              Download
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
         <TabsContent value="security">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <Card>
@@ -481,20 +284,6 @@ function Settings() {
                     <Button className="gap-2">
                       <Save className="h-4 w-4" /> Update Password
                     </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Two-Factor Authentication</h3>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="twoFactor">Enable Two-Factor Authentication</Label>
-                      <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
-                    </div>
-                    <Switch id="twoFactor" />
                   </div>
                 </div>
 
