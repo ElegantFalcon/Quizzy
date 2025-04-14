@@ -202,18 +202,6 @@ function CreateQuiz() {
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <Select defaultValue="public">
-                                                <SelectTrigger className="w-[120px]">
-                                                    <SelectValue placeholder="Access" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="public">Public</SelectItem>
-                                                    <SelectItem value="private">Private</SelectItem>
-                                                    <SelectItem value="password">Password</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="flex items-center justify-between">
                                             <div className="space-y-0.5">
                                                 <Label htmlFor="show-results">Show Results</Label>
                                                 <div className="text-sm text-muted-foreground">Display results after each question</div>
@@ -229,7 +217,7 @@ function CreateQuiz() {
                                         </div>
                                     </div>
                                 </CardContent>
-                            </Card>
+                            </Card> 
                         </motion.div>
 
                         <motion.div

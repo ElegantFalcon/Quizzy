@@ -34,11 +34,6 @@ const participationData = [
     { date: new Date(), count: 72 },
 ]
 
-const deviceData = [
-    { device: "Mobile", percentage: 62 },
-    { device: "Desktop", percentage: 31 },
-    { device: "Tablet", percentage: 7 },
-]
 
 const questionPerformance = [
     { question: "Question 1", correctAnswers: 78, incorrectAnswers: 22 },
@@ -130,7 +125,6 @@ function Analytics() {
                                     <Users className="h-5 w-5 text-primary mr-2" />
                                     <div className="text-2xl font-bold">{totalParticipants}</div>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">+12% from previous period</p>
                             </CardContent>
                         </Card>
                     </motion.div>
@@ -145,7 +139,6 @@ function Analytics() {
                                     <PieChart className="h-5 w-5 text-primary mr-2" />
                                     <div className="text-2xl font-bold">{avgCompletionRate}%</div>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">+5% from previous period</p>
                             </CardContent>
                         </Card>
                     </motion.div>
@@ -160,7 +153,6 @@ function Analytics() {
                                     <BarChart className="h-5 w-5 text-primary mr-2" />
                                     <div className="text-2xl font-bold">{avgScore}%</div>
                                 </div>
-                                <p className="text-xs text-muted-foreground mt-1">-2% from previous period</p>
                             </CardContent>
                         </Card>
                     </motion.div>
@@ -169,7 +161,6 @@ function Analytics() {
                 <Tabs defaultValue="overview">
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="participation">Participation</TabsTrigger>
                         <TabsTrigger value="performance">Performance</TabsTrigger>
                     </TabsList>
 
@@ -208,38 +199,8 @@ function Analytics() {
                             </CardContent>
                         </Card>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Device Distribution</CardTitle>
-                                    <CardDescription>Participants by device type</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="h-[200px] w-full">
-                                        {/* This would be a real chart in a production app */}
-                                        <div className="h-full w-full flex items-center justify-center">
-                                            <div className="relative h-32 w-32">
-                                                <PieChart className="h-full w-full text-muted-foreground/30 absolute inset-0" />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <div className="text-center">
-                                                        <div className="text-sm font-medium">Mobile</div>
-                                                        <div className="text-2xl font-bold text-primary">62%</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 mt-4">
-                                        {deviceData.map((data, index) => (
-                                            <div key={index} className="text-center">
-                                                <div className="text-sm font-medium">{data.device}</div>
-                                                <div className="text-muted-foreground">{data.percentage}%</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
+                        <div className=" gap-6">
+                        
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Quiz Performance</CardTitle>
@@ -267,70 +228,6 @@ function Analytics() {
                                 </CardContent>
                             </Card>
                         </div>
-                    </TabsContent>
-
-                    <TabsContent value="participation" className="mt-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Participation Details</CardTitle>
-                                <CardDescription>Detailed breakdown of quiz participation</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-8">
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-4">Participation by Time of Day</h3>
-                                        <div className="h-[200px] w-full">
-                                            {/* This would be a real chart in a production app */}
-                                            <div className="h-full w-full bg-muted/20 rounded-md flex items-center justify-center relative overflow-hidden">
-                                                <BarChart className="h-12 w-12 text-muted-foreground/50" />
-                                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-primary/20"></div>
-
-                                                {/* Simplified chart visualization */}
-                                                <div className="absolute bottom-0 left-0 w-full h-full flex items-end justify-around px-4">
-                                                    {["Morning", "Afternoon", "Evening", "Night"].map((time, index) => (
-                                                        <div key={index} className="flex flex-col items-center">
-                                                            <motion.div
-                                                                className="w-16 bg-primary rounded-t-sm"
-                                                                initial={{ height: 0 }}
-                                                                animate={{ height: `${[65, 85, 45, 25][index]}%` }}
-                                                                transition={{ delay: index * 0.1, duration: 0.7 }}
-                                                            ></motion.div>
-                                                            <div className="text-xs mt-2">{time}</div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 className="text-lg font-medium mb-4">Participation by Day of Week</h3>
-                                        <div className="h-[200px] w-full">
-                                            {/* This would be a real chart in a production app */}
-                                            <div className="h-full w-full bg-muted/20 rounded-md flex items-center justify-center relative overflow-hidden">
-                                                <BarChart className="h-12 w-12 text-muted-foreground/50" />
-                                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-primary/20"></div>
-
-                                                {/* Simplified chart visualization */}
-                                                <div className="absolute bottom-0 left-0 w-full h-full flex items-end justify-around px-4">
-                                                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => (
-                                                        <div key={index} className="flex flex-col items-center">
-                                                            <motion.div
-                                                                className="w-8 bg-primary rounded-t-sm"
-                                                                initial={{ height: 0 }}
-                                                                animate={{ height: `${[45, 65, 75, 60, 80, 30, 20][index]}%` }}
-                                                                transition={{ delay: index * 0.1, duration: 0.7 }}
-                                                            ></motion.div>
-                                                            <div className="text-xs mt-2">{day}</div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </TabsContent>
 
                     <TabsContent value="performance" className="mt-6">
