@@ -3,8 +3,9 @@
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { auth } from "@/lib/firebase"
 import { signOut } from "firebase/auth"
-import { auth } from "@/firebase"
+
 import { useRouter } from "next/navigation"
 
 export function UserProfile() {

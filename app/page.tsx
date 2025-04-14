@@ -70,11 +70,7 @@ export default function HomePage() {
               Join Quiz <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="secondary" className="gap-2 transition-all duration-300 hover:scale-105">
-            <Link href="/auth/login">
-              Login
-            </Link>
-          </Button>
+          
         </motion.div>
       </motion.div>
 
