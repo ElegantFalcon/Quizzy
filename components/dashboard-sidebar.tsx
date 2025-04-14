@@ -17,9 +17,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { useAuth } from "@/contexts/auth-context"
 
 export function DashboardSidebar() {
   const pathname = usePathname()
+  const { user } = useAuth()
 
   return (
     <Sidebar>
@@ -37,6 +39,7 @@ export function DashboardSidebar() {
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         <div className="px-4 py-2">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -45,6 +48,7 @@ export function DashboardSidebar() {
             </Button>
           </motion.div>
         </div>
+
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
@@ -88,15 +92,29 @@ export function DashboardSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
+
       <SidebarFooter className="border-t">
         <div className="flex items-center p-4">
           <Avatar className="h-8 w-8">
             <AvatarImage src="/placeholder-user.jpg" alt="User" />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarFallback>
+              {user?.displayName?.[0] || "?"}
+            </AvatarFallback>
           </Avatar>
           <div className="ml-2">
-            <p className="text-sm font-medium">John Doe</p>
-            <p className="text-xs text-muted-foreground">john@example.com</p>
+            {user ? (
+              <>
+                <p className="text-sm font-medium">
+                  {user.displayName || "Unnamed User"}
+                </p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium">Not logged in</p>
+                <p className="text-xs text-muted-foreground">Guest</p>
+              </>
+            )}
           </div>
           <Button variant="ghost" size="icon" className="ml-auto">
             <User className="h-4 w-4" />
@@ -106,4 +124,3 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
-

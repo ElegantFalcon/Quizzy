@@ -306,7 +306,7 @@ function LoginPage() {
           </CardContent>
           <CardFooter>
             <div className="text-center w-full text-sm">
-              Don&apost have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/auth/signup" className="text-primary underline-offset-4 hover:underline">
                 Sign up
               </Link>
