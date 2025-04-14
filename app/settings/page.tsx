@@ -2,9 +2,8 @@
 
 import { Badge } from "@/components/ui/badge"
 
-import { useState } from "react"
 import { motion } from "framer-motion"
-import { Bell, CreditCard, Globe, Lock, LogOut, Mail, Save, User, UserCog } from "lucide-react"
+import { Lock, LogOut, Save, User, UserCog } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -18,9 +17,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ThemeToggle } from "@/components/theme-toggle"
 
 function Settings() {
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [marketingEmails, setMarketingEmails] = useState(false)
 
   return (
     <div className="container py-6">
