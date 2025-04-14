@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { DragHandleDots2Icon } from "@radix-ui/react-icons"
-import { BarChart3, Clock, Cloud, Cog, Layers, ListOrdered, MessageSquare, Plus, Trash2 } from "lucide-react"
+import { BarChart3, Clock,  Cog, Layers,  Plus, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { UserProfile } from "@/components/user-profile"
@@ -26,7 +26,7 @@ function CreateQuiz() {
 
     const addQuestion = () => {
         const newId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1
-        setQuestions([...questions, { id: newId, type: "multiple-choice", text: "", options: ["Option 1", "Option 2"] }])
+        setQuestions([...questions, { id: newId, type: "multiple-choice", text: "", options: ["Option 1", "Option 2","Option 3","Option 4"] }])
     }
 
     const removeQuestion = (id: number) => {
@@ -52,11 +52,11 @@ function CreateQuiz() {
                         <Card>
                             <CardContent className="pt-6">
                                 <div className="space-y-4">
-                                    <div>
+                                    <div className="space-y-4">
                                         <Label htmlFor="title">Quiz Title</Label>
                                         <Input id="title" placeholder="Enter quiz title" className="mt-1" />
                                     </div>
-                                    <div>
+                                    <div className="space-y-4">
                                         <Label htmlFor="description">Description</Label>
                                         <Textarea id="description" placeholder="Enter quiz description" className="mt-1" />
                                     </div>
@@ -98,24 +98,7 @@ function CreateQuiz() {
                                                                         <span>Multiple Choice</span>
                                                                     </div>
                                                                 </SelectItem>
-                                                                <SelectItem value="word-cloud">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Cloud className="h-4 w-4" />
-                                                                        <span>Word Cloud</span>
-                                                                    </div>
-                                                                </SelectItem>
-                                                                <SelectItem value="ranking">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <ListOrdered className="h-4 w-4" />
-                                                                        <span>Ranking</span>
-                                                                    </div>
-                                                                </SelectItem>
-                                                                <SelectItem value="qa">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <MessageSquare className="h-4 w-4" />
-                                                                        <span>Q&A</span>
-                                                                    </div>
-                                                                </SelectItem>
+                                                             
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
@@ -146,11 +129,7 @@ function CreateQuiz() {
                                                             <Input defaultValue={option} placeholder={`Option ${optIndex + 1}`} />
                                                         </div>
                                                     ))}
-                                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                                        <Button variant="outline" size="sm" className="mt-2">
-                                                            <Plus className="h-4 w-4 mr-2" /> Add Option
-                                                        </Button>
-                                                    </motion.div>
+                                                 
                                                 </div>
                                             </div>
                                         </CardContent>
@@ -165,6 +144,18 @@ function CreateQuiz() {
                         >
                             <Button onClick={addQuestion} variant="outline" className="w-full py-8 border-dashed">
                                 <Plus className="h-5 w-5 mr-2" /> Add Question
+                            </Button>
+                        </motion.div>
+                        <motion.div
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                        >
+                            <Button
+                                onClick={() => console.log("Quiz saved!")} 
+                                className="w-full py-4 mt-4"
+                            >
+                                Save Quiz
                             </Button>
                         </motion.div>
                     </div>
@@ -209,23 +200,8 @@ function CreateQuiz() {
                                                 <Label>Theme</Label>
                                                 <div className="text-sm text-muted-foreground">Choose quiz appearance</div>
                                             </div>
-                                            <Select defaultValue="default">
-                                                <SelectTrigger className="w-[120px]">
-                                                    <SelectValue placeholder="Theme" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="default">Default</SelectItem>
-                                                    <SelectItem value="dark">Dark</SelectItem>
-                                                    <SelectItem value="colorful">Colorful</SelectItem>
-                                                    <SelectItem value="minimal">Minimal</SelectItem>
-                                                </SelectContent>
-                                            </Select>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <div className="space-y-0.5">
-                                                <Label>Access</Label>
-                                                <div className="text-sm text-muted-foreground">Control who can join</div>
-                                            </div>
                                             <Select defaultValue="public">
                                                 <SelectTrigger className="w-[120px]">
                                                     <SelectValue placeholder="Access" />
