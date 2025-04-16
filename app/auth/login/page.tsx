@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { auth, provider } from "@/lib/firebase"
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
 
+
 function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
