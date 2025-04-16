@@ -5,17 +5,27 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 
-export function Navbar() {
+export function Navbar({ showTitle=true,showBackground=true}:{ showTitle?:boolean; showBackground:boolean}) {
   const [isOpen, setIsOpen] = useState(false)
 
   const toggleMenu = () => setIsOpen(!isOpen)
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm">
+    <nav
+    className={`px-6 py-4 flex items-center justify-between ${
+      showBackground
+        ? 'bg-white dark:bg-gray-900 border-b dark:border-gray-700 shadow-sm'
+        : ''
+    }`}
+  >
+  
+
       <div className="flex items-center gap-4">
-        <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-          MyApp
-        </Link>
+        { showTitle && (
+            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
+             Quizzy
+            </Link>
+        )}
       </div>
 
       <div className="hidden md:flex items-center gap-6">

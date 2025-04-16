@@ -1,7 +1,7 @@
 "use client"
 
 import { ThemeProvider } from "@/components/theme-provider"
-import { Navbar } from "@/components/navbar"
+import { Navbar } from "@/components/navbar" // ✅ Import the Navbar
 
 export default function AuthLayout({
   children,
@@ -17,8 +17,8 @@ export default function AuthLayout({
         disableTransitionOnChange
       >
         {/* ✅ Navbar shown on login & signup pages */}
-        <Navbar />
-
+        <Navbar showBackground={true} />
+        
         {/* ✅ Center the content below the navbar */}
         <main className="flex flex-1 flex-col items-center justify-center p-4">
           {children}
