@@ -3,6 +3,7 @@ import "@/app/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import type { Metadata } from "next"
 import { AuthProvider } from "@/contexts/auth-context"
+import { Toaster } from "sonner"
 
 export const metadata: Metadata = {
   title: "Interactive Quiz App",
@@ -15,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body>
         <ThemeProvider
           attribute="class"
@@ -27,6 +28,7 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   )

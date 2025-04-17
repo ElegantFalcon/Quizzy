@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { browserLocalPersistence, setPersistence } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; // Change this import for Firestore
 
 // Replace with your actual config from Firebase Console
 const firebaseConfig = {
@@ -11,10 +12,12 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  // Remove the databaseURL line as it's not needed for Firestore
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app); // Initialize Firestore instead of Realtime Database
 const provider = new GoogleAuthProvider();
 
 // Configure Google Auth Provider
@@ -31,4 +34,4 @@ provider.setCustomParameters({
   }
 })();
 
-export { auth, provider };
+export { auth, provider, db }; // Export db as well
