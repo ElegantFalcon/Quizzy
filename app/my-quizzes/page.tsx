@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { BarChart3, Calendar, Copy, Edit, Eye, Filter, MoreHorizontal, Plus, Search, Trash2, Users } from "lucide-react"
 import { format } from "date-fns"
@@ -17,88 +18,149 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { db, auth } from "@/lib/firebase"
+// Update these imports for Firestore
+import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore"
+import { toast } from "sonner"
+import { 
+    AlertDialog, 
+    AlertDialogAction, 
+    AlertDialogCancel, 
+    AlertDialogContent, 
+    AlertDialogDescription, 
+    AlertDialogFooter, 
+    AlertDialogHeader, 
+    AlertDialogTitle 
+} from "@/components/ui/alert-dialog"
 
-// Mock data for quizzes
-const quizzes = [
-    {
-        id: 1,
-        title: "Product Knowledge Quiz",
-        description: "Test your knowledge about our products",
-        createdAt: new Date(2023, 3, 15),
-        participants: 124,
-        status: "active",
-        questions: 10,
-        category: "business",
-    },
-    {
-        id: 2,
-        title: "Team Building Survey",
-        description: "Help us improve our team building activities",
-        createdAt: new Date(2023, 4, 2),
-        participants: 45,
-        status: "active",
-        questions: 8,
-        category: "education",
-    },
-    {
-        id: 3,
-        title: "Customer Satisfaction",
-        description: "Rate your experience with our customer service",
-        createdAt: new Date(2023, 5, 10),
-        participants: 89,
-        status: "completed",
-        questions: 5,
-        category: "feedback",
-    },
-    {
-        id: 4,
-        title: "Marketing Concepts",
-        description: "Test your marketing knowledge",
-        createdAt: new Date(2023, 2, 28),
-        participants: 67,
-        status: "draft",
-        questions: 15,
-        category: "business",
-    },
-    {
-        id: 5,
-        title: "Programming Basics",
-        description: "Test your programming fundamentals",
-        createdAt: new Date(2023, 1, 15),
-        participants: 210,
-        status: "active",
-        questions: 20,
-        category: "education",
-    },
-    {
-        id: 6,
-        title: "Annual Employee Survey",
-        description: "Share your thoughts about working here",
-        createdAt: new Date(2023, 0, 5),
-        participants: 156,
-        status: "completed",
-        questions: 12,
-        category: "feedback",
-    },
-]
+// Define quiz type
+interface Quiz {
+    id: string;
+    title: string;
+    description: string;
+    createdAt: Date;
+    participants: number;
+    status: "active" | "completed" | "draft";
+    questions: number;
+    category: string;
+    userId: string;
+}
 
 function MyQuizzes() {
+    const router = useRouter()
     const [searchTerm, setSearchTerm] = useState("")
     const [activeTab, setActiveTab] = useState("all")
+    const [quizzes, setQuizzes] = useState<Quiz[]>([])
+    const [loading, setLoading] = useState(true)
+    const [deleteQuizId, setDeleteQuizId] = useState<string | null>(null)
+    const [sortOrder, setSortOrder] = useState<string>("newest")
+
+    // Fetch quizzes from Firestore
+    useEffect(() => {
+        const fetchQuizzes = async () => {
+            try {
+                const currentUser = auth.currentUser;
+                if (!currentUser) {
+                    router.push("/auth/login");
+                    return;
+                }
+
+                const userId = currentUser.uid;
+                const quizzesRef = collection(db, "quizzes");
+                const q = query(quizzesRef, where("userId", "==", userId));
+                const querySnapshot = await getDocs(q);
+                
+                const fetchedQuizzes: Quiz[] = [];
+                // Fix for line 133 - Improved date handling from Firestore
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    try {
+                        fetchedQuizzes.push({
+                            id: doc.id,
+                            title: data.title,
+                            description: data.description,
+                            // More robust date handling
+                            createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' 
+                                ? data.createdAt.toDate() 
+                                : new Date(data.createdAt || Date.now()),
+                            participants: data.participants || 0,
+                            status: data.status || "draft",
+                            questions: data.questionCount || 0,
+                            category: data.category || "general",
+                            userId: data.userId
+                        });
+                    } catch (err) {
+                        console.error("Error processing quiz document:", err, data);
+                    }
+                });
+                
+                setQuizzes(fetchedQuizzes);
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching quizzes:", error);
+                toast.error("Failed to load quizzes. Please try again.");
+                setLoading(false);
+            }
+        };
+
+        fetchQuizzes();
+    }, [router]);
 
     // Filter quizzes based on search term and active tab
+    // Fix for line 199 - Add null/undefined checks for createdAt in sorting
     const filteredQuizzes = quizzes.filter((quiz) => {
         const matchesSearch =
             quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            quiz.description.toLowerCase().includes(searchTerm.toLowerCase())
+            quiz.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+        if (activeTab === "all") return matchesSearch;
+        if (activeTab === "active") return matchesSearch && quiz.status === "active";
+        if (activeTab === "completed") return matchesSearch && quiz.status === "completed";
+        if (activeTab === "drafts") return matchesSearch && quiz.status === "draft";
+    
+        return matchesSearch;
+    }).sort((a, b) => {
+        // Add safety checks for date objects
+        switch (sortOrder) {
+            case "newest":
+                return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
+            case "oldest":
+                return (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0);
+            case "participants":
+                return (b.participants || 0) - (a.participants || 0);
+            case "alphabetical":
+                return (a.title || "").localeCompare(b.title || "");
+            default:
+                return 0;
+        }
+    });
 
-        if (activeTab === "all") return matchesSearch
-        if (activeTab === "active") return matchesSearch && quiz.status === "active"
-        if (activeTab === "completed") return matchesSearch && quiz.status === "completed"
-        if (activeTab === "drafts") return matchesSearch && quiz.status === "draft"
+    const handleDeleteQuiz = async () => {
+        if (!deleteQuizId) return;
+        
+        try {
+            await deleteDoc(doc(db, "quizzes", deleteQuizId));
+            setQuizzes(quizzes.filter(quiz => quiz.id !== deleteQuizId));
+            toast.success("The quiz has been successfully deleted.");
+        } catch (error) {
+            console.error("Error deleting quiz:", error);
+            toast.error("Failed to delete quiz. Please try again.");
+        } finally {
+            setDeleteQuizId(null);
+        }
+    };
 
-        return matchesSearch
-    })
+    const handleCreateQuiz = () => {
+        router.push("/create");
+    };
+
+    const handleEditQuiz = (quizId: string) => {
+        router.push(`/edit/${quizId}`);
+    };
+
+    const handleViewAnalytics = (quizId: string) => {
+        router.push(`/analytics/${quizId}`);
+    };
 
     const container = {
         hidden: { opacity: 0 },
@@ -108,12 +170,14 @@ function MyQuizzes() {
                 staggerChildren: 0.1,
             },
         },
-    }
+    };
 
     const item = {
         hidden: { opacity: 0, y: 20 },
         show: { opacity: 1, y: 0 },
-    }
+    };
+
+    if (loading) return null; // Let the loading component handle this
 
     return (
         <div className="container py-6">
@@ -125,7 +189,7 @@ function MyQuizzes() {
                 <div className="flex items-center gap-3">
                     <ThemeToggle />
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button className="gap-2">
+                        <Button className="gap-2" onClick={handleCreateQuiz}>
                             <Plus className="h-4 w-4" /> Create Quiz
                         </Button>
                     </motion.div>
@@ -154,10 +218,18 @@ function MyQuizzes() {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Newest first</DropdownMenuItem>
-                                <DropdownMenuItem>Oldest first</DropdownMenuItem>
-                                <DropdownMenuItem>Most participants</DropdownMenuItem>
-                                <DropdownMenuItem>Alphabetical</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortOrder("newest")}>
+                                    Newest first
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
+                                    Oldest first
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortOrder("participants")}>
+                                    Most participants
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortOrder("alphabetical")}>
+                                    Alphabetical
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -177,7 +249,17 @@ function MyQuizzes() {
                                     <Search className="h-6 w-6 text-muted-foreground" />
                                 </div>
                                 <h3 className="text-lg font-medium">No quizzes found</h3>
-                                <p className="text-muted-foreground mt-1">Try adjusting your search or filters</p>
+                                <p className="text-muted-foreground mt-1">
+                                    {searchTerm ? "Try adjusting your search or filters" : "Create your first quiz to get started"}
+                                </p>
+                                {!searchTerm && quizzes.length === 0 && (
+                                    <Button 
+                                        className="mt-4 gap-2" 
+                                        onClick={handleCreateQuiz}
+                                    >
+                                        <Plus className="h-4 w-4" /> Create Quiz
+                                    </Button>
+                                )}
                             </motion.div>
                         ) : (
                             <motion.div
@@ -211,7 +293,7 @@ function MyQuizzes() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleEditQuiz(quiz.id)}>
                                                                 <Edit className="mr-2 h-4 w-4" /> Edit
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem>
@@ -220,11 +302,14 @@ function MyQuizzes() {
                                                             <DropdownMenuItem>
                                                                 <Copy className="mr-2 h-4 w-4" /> Duplicate
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleViewAnalytics(quiz.id)}>
                                                                 <BarChart3 className="mr-2 h-4 w-4" /> View Analytics
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
-                                                            <DropdownMenuItem className="text-destructive">
+                                                            <DropdownMenuItem 
+                                                                className="text-destructive"
+                                                                onClick={() => setDeleteQuizId(quiz.id)}
+                                                            >
                                                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
@@ -255,6 +340,24 @@ function MyQuizzes() {
                     </TabsContent>
                 </Tabs>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={!!deleteQuizId} onOpenChange={(open) => !open && setDeleteQuizId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the quiz and all associated data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteQuiz} className="bg-destructive text-destructive-foreground">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
