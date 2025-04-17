@@ -5,8 +5,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { Ripple } from "@/components/magicui/ripple";
+import { Navbar } from "@/components/navbar"
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false)
@@ -37,8 +37,9 @@ export default function HomePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12 bg-gradient-to-b from-background to-muted/30 dark:from-background dark:to-background">
       <Ripple/>
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+      
+      <div className="absolute top-5 right-5">
+      <Navbar showTitle={false} showBackground={false} />
       </div>
 
       <motion.div
