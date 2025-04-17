@@ -5,6 +5,7 @@ import type { Metadata } from "next"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "sonner"
 
+
 export const metadata: Metadata = {
   title: "Interactive Quiz App",
   description: "Create and join interactive quizzes",
@@ -16,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <ThemeProvider
           attribute="class"

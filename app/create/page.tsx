@@ -34,7 +34,7 @@ function CreateQuiz() {
     }
 
     return (
-        <div className="container py-6 ml-[200px]">
+        <div className="container py-6 ml-[300px]">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Create Quiz</h1>
