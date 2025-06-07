@@ -33,6 +33,7 @@ import {
     AlertDialogTitle 
 } from "@/components/ui/alert-dialog"
 
+
 // Define quiz type
 interface Quiz {
     id: string;
