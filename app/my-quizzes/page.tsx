@@ -18,7 +18,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { db, auth } from "@/lib/firebase"
+import { db } from "@/lib/firebase"  // Remove auth from this line
 // Update these imports for Firestore
 import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore"
 import { toast } from "sonner"
@@ -32,6 +32,7 @@ import {
     AlertDialogHeader, 
     AlertDialogTitle 
 } from "@/components/ui/alert-dialog"
+import { useAuth } from "@/contexts/auth-context"
 
 
 // Define quiz type
@@ -49,6 +50,7 @@ interface Quiz {
 
 function MyQuizzes() {
     const router = useRouter()
+    const { user, loading: authLoading } = useAuth()
     const [searchTerm, setSearchTerm] = useState("")
     const [activeTab, setActiveTab] = useState("all")
     const [quizzes, setQuizzes] = useState<Quiz[]>([])
@@ -58,17 +60,17 @@ function MyQuizzes() {
 
     // Fetch quizzes from Firestore
     useEffect(() => {
+        if (authLoading) return; // Wait for auth to initialize
+        
+        if (!user) {
+            router.push("/auth/login");
+            return;
+        }
+
         const fetchQuizzes = async () => {
             try {
-                const currentUser = auth.currentUser;
-                if (!currentUser) {
-                    router.push("/auth/login");
-                    return;
-                }
-
-                const userId = currentUser.uid;
                 const quizzesRef = collection(db, "quizzes");
-                const q = query(quizzesRef, where("userId", "==", userId));
+                const q = query(quizzesRef, where("userId", "==", user.uid));
                 const querySnapshot = await getDocs(q);
                 
                 const fetchedQuizzes: Quiz[] = [];
@@ -105,8 +107,9 @@ function MyQuizzes() {
         };
 
         fetchQuizzes();
-    }, [router]);
+    }, [router, user, authLoading]);
 
+    if (authLoading || loading) return null; // Show loading state
     // Filter quizzes based on search term and active tab
     // Fix for line 199 - Add null/undefined checks for createdAt in sorting
     const filteredQuizzes = quizzes.filter((quiz) => {
