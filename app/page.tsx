@@ -5,17 +5,33 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import { motion } from "framer-motion"
-import { Ripple } from "@/components/magicui/ripple";
+import { Ripple } from "@/components/magicui/ripple"
 import { Navbar } from "@/components/navbar"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function HomePage() {
   const [mounted, setMounted] = useState(false)
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
 
-  // Ensure hydration mismatch doesn't occur with theme
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Remove the early return that was causing issues
+  // if (!mounted || authLoading) return null
+
+  const handleCreateClick = () => {
+    if (authLoading) return // Don't do anything while auth is loading
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+    router.push('/create')
+  }
+
+  // Only render content when mounted to prevent hydration issues
   if (!mounted) return null
 
   const container = {
@@ -29,17 +45,14 @@ export default function HomePage() {
     },
   }
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
-  }
-
+  // Remove the unused item variable
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12 bg-gradient-to-b from-background to-muted/30 dark:from-background dark:to-background">
       <Ripple/>
       
       <div className="absolute top-5 right-5">
-      <Navbar showTitle={false} showBackground={false} />
+        <Navbar showTitle={false} showBackground={false} />
       </div>
 
       <motion.div
@@ -61,17 +74,18 @@ export default function HomePage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          <Button asChild size="lg" className="gap-2 transition-all duration-300 hover:scale-105">
-            <Link href="/create">
-              Create Quiz <ArrowRight className="h-4 w-4 animate-pulse" />
-            </Link>
+          <Button 
+            size="lg" 
+            className="gap-2 transition-all duration-300 hover:scale-105"
+            onClick={handleCreateClick}
+          >
+            Create Quiz <ArrowRight className="h-4 w-4 animate-pulse" />
           </Button>
           <Button asChild size="lg" variant="outline" className="gap-2 transition-all duration-300 hover:scale-105">
             <Link href="/join">
               Join Quiz <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          
         </motion.div>
       </motion.div>
 
@@ -82,9 +96,10 @@ export default function HomePage() {
         animate="show"
       >
         <motion.div
-          className="bg-card rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-300 hover:-translate-y-1"
-          variants={item}
-        >
+  variants={container}
+  initial="hidden"
+  animate="show"
+>
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -112,9 +127,10 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div
-          className="bg-card rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-300 hover:-translate-y-1"
-          variants={item}
-        >
+  variants={container}
+  initial="hidden"
+  animate="show"
+>
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -141,9 +157,10 @@ export default function HomePage() {
         </motion.div>
 
         <motion.div
-          className="bg-card rounded-lg p-6 shadow-sm border hover:shadow-md transition-all duration-300 hover:-translate-y-1"
-          variants={item}
-        >
+  variants={container}
+  initial="hidden"
+  animate="show"
+>
           <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"

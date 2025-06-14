@@ -14,11 +14,14 @@ import { BarChart3, Clock, Cog, Layers, Plus, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { UserProfile } from "@/components/user-profile"
-import { db, auth } from "@/lib/firebase"
+import { db } from "@/lib/firebase"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { useAuth } from "@/contexts/auth-context"
 
 function CreateQuiz() {
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const [mounted, setMounted] = useState(false)
   const [questions, setQuestions] = useState([
     {
       id: 1,
@@ -33,17 +36,23 @@ function CreateQuiz() {
   const [timeLimit, setTimeLimit] = useState("30")
   const [showResults, setShowResults] = useState(true)
   const [leaderboard, setLeaderboard] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
 
-  // Fetch the current user (same as MyQuizzes page)
   useEffect(() => {
-    const currentUser = auth.currentUser
-    if (!currentUser) {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!authLoading && !user) {
       router.push("/auth/login")
-    } else {
-      setUserId(currentUser.uid)
     }
-  }, [router])
+  }, [user, authLoading, router])
+
+  if (!mounted || authLoading) return null
+
+  if (!user) {
+    router.push("/auth/login")
+    return null
+  }
 
   const addQuestion = () => {
     const newId = questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1
@@ -64,14 +73,15 @@ function CreateQuiz() {
 
   const saveQuiz = async () => {
     if (!title.trim()) return alert("Title is required.")
-    if (!userId) return alert("User not logged in.")
+    if (!user) return alert("User not logged in.")
 
     try {
+      // Save complete quiz data to created-quiz collection
       const docRef = await addDoc(collection(db, "created-quiz"), {
         title,
         description,
         createdAt: serverTimestamp(),
-        userId,
+        userId: user.uid,
         questionCount: questions.length,
         participants: 0,
         status: "draft",
@@ -88,6 +98,20 @@ function CreateQuiz() {
           options: q.options,
         })),
       })
+
+      // Save metadata to quizzes collection
+      await addDoc(collection(db, "quizzes"), {
+        id: docRef.id,  // Reference to the full quiz document
+        title,
+        description,
+        createdAt: serverTimestamp(),
+        userId: user.uid,
+        questionCount: questions.length,
+        participants: 0,
+        status: "draft",
+        category: "general"
+      })
+
       console.log("Quiz saved with ID:", docRef.id)
       alert("Quiz saved successfully!")
       router.push("/my-quizzes")
@@ -95,7 +119,7 @@ function CreateQuiz() {
       console.error("Error saving quiz:", error)
       alert("Error saving quiz.")
     }
-  }
+}
 
   return (
     <div className="container py-6 ml-[300px]">
