@@ -76,7 +76,8 @@ function CreateQuiz() {
     if (!user) return alert("User not logged in.")
 
     try {
-      const docRef = await addDoc(collection(db, "quizzes"), {
+      // Save complete quiz data to created-quiz collection
+      const docRef = await addDoc(collection(db, "created-quiz"), {
         title,
         description,
         createdAt: serverTimestamp(),
@@ -97,6 +98,20 @@ function CreateQuiz() {
           options: q.options,
         })),
       })
+
+      // Save metadata to quizzes collection
+      await addDoc(collection(db, "quizzes"), {
+        id: docRef.id,  // Reference to the full quiz document
+        title,
+        description,
+        createdAt: serverTimestamp(),
+        userId: user.uid,
+        questionCount: questions.length,
+        participants: 0,
+        status: "draft",
+        category: "general"
+      })
+
       console.log("Quiz saved with ID:", docRef.id)
       alert("Quiz saved successfully!")
       router.push("/my-quizzes")

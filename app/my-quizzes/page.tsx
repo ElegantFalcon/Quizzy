@@ -74,7 +74,6 @@ function MyQuizzes() {
                 const querySnapshot = await getDocs(q);
                 
                 const fetchedQuizzes: Quiz[] = [];
-                // Fix for line 133 - Improved date handling from Firestore
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     try {
@@ -82,10 +81,7 @@ function MyQuizzes() {
                             id: doc.id,
                             title: data.title,
                             description: data.description,
-                            // More robust date handling
-                            createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' 
-                                ? data.createdAt.toDate() 
-                                : new Date(data.createdAt || Date.now()),
+                            createdAt: data.createdAt?.toDate() || new Date(),
                             participants: data.participants || 0,
                             status: data.status || "draft",
                             questions: data.questionCount || 0,
@@ -143,7 +139,9 @@ function MyQuizzes() {
         if (!deleteQuizId) return;
         
         try {
+            // Delete from both collections
             await deleteDoc(doc(db, "quizzes", deleteQuizId));
+            await deleteDoc(doc(db, "created-quiz", deleteQuizId));
             setQuizzes(quizzes.filter(quiz => quiz.id !== deleteQuizId));
             toast.success("The quiz has been successfully deleted.");
         } catch (error) {
