@@ -17,6 +17,16 @@ import { UserProfile } from "@/components/user-profile"
 import { db } from "@/lib/firebase"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { useAuth } from "@/contexts/auth-context"
+import { Toaster,toast } from "sonner"
+
+function generateRoomCode(length = 6) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  let code = ""
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
 
 function CreateQuiz() {
   const router = useRouter()
@@ -36,6 +46,7 @@ function CreateQuiz() {
   const [timeLimit, setTimeLimit] = useState("30")
   const [showResults, setShowResults] = useState(true)
   const [leaderboard, setLeaderboard] = useState(true)
+  const [roomCode, setRoomCode] = useState("")
 
   useEffect(() => {
     setMounted(true)
@@ -72,14 +83,16 @@ function CreateQuiz() {
   }
 
   const saveQuiz = async () => {
-    if (!title.trim()) return alert("Title is required.")
-    if (!user) return alert("User not logged in.")
+    if (!title.trim()) return toast.error("Title is required.")
+    if (!user) return toast.error("User not logged in.")
+    if (!roomCode) return toast.error("Room code is required.")
 
     try {
       // Save complete quiz data to created-quiz collection
       const docRef = await addDoc(collection(db, "created-quiz"), {
         title,
         description,
+        roomCode,
         createdAt: serverTimestamp(),
         userId: user.uid,
         questionCount: questions.length,
@@ -104,6 +117,7 @@ function CreateQuiz() {
         id: docRef.id,  // Reference to the full quiz document
         title,
         description,
+        roomCode,
         createdAt: serverTimestamp(),
         userId: user.uid,
         questionCount: questions.length,
@@ -113,16 +127,18 @@ function CreateQuiz() {
       })
 
       console.log("Quiz saved with ID:", docRef.id)
-      alert("Quiz saved successfully!")
+      toast.success("Quiz saved successfully!")
       router.push("/my-quizzes")
     } catch (error) {
       console.error("Error saving quiz:", error)
-      alert("Error saving quiz.")
+      toast.error("Error saving quiz.")
     }
-}
+  }
 
   return (
     <div className="container py-6 ml-[300px]">
+      <Toaster richColors />
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Create Quiz</h1>
@@ -147,6 +163,26 @@ function CreateQuiz() {
                   <div className="space-y-4">
                     <Label htmlFor="description">Description</Label>
                     <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Enter quiz description" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="room-code">Room Code</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="room-code"
+                        value={roomCode}
+                        onChange={(e) => setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                        placeholder="Generate or enter room code"
+                        maxLength={8}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setRoomCode(generateRoomCode(6))}
+                      >
+                        Generate
+                      </Button>
+                    </div>
+                    <div className="text-xs text-muted-foreground">Room code can contain numbers and capital letters.</div>
                   </div>
                 </div>
               </CardContent>
