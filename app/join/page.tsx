@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 
 function JoinQuiz() {
     const [code, setCode] = useState("")
@@ -67,6 +68,15 @@ function JoinQuiz() {
                                 <p className="mt-4 text-muted-foreground">
                                     Enter the quiz code provided by your host to join the session
                                 </p>
+                                <div className="mt-6 flex justify-center">
+                                    <InputOTP value={code} onChange={setCode} maxLength={6}>
+                                        <InputOTPGroup className="gap-2">
+                                            {[...Array(6)].map((_, i) => (
+                                            <InputOTPSlot key={i} index={i} />
+                                            ))}
+                                        </InputOTPGroup>
+                                    </InputOTP>
+                                </div>
                             </motion.div>
                             <motion.div
                                 className="mt-8 space-y-4"
@@ -74,14 +84,7 @@ function JoinQuiz() {
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.3, duration: 0.5 }}
                             >
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <Input
-                                        value={code}
-                                        onChange={(e) => setCode(e.target.value)}
-                                        placeholder="Enter quiz code"
-                                        className="text-center text-xl py-6 font-medium tracking-widest"
-                                    />
-                                </div>
+                                
                                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                     <Button onClick={handleJoin} size="lg" className="w-full py-6 text-lg" disabled={!code}>
                                         Join Quiz <ArrowRight className="ml-2 h-5 w-5" />
