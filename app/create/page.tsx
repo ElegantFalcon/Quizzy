@@ -17,7 +17,7 @@ import { UserProfile } from "@/components/user-profile"
 import { db } from "@/lib/firebase"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { useAuth } from "@/contexts/auth-context"
-import { Toaster,toast } from "sonner"
+import { Toaster, toast } from "sonner"
 
 function generateRoomCode(length = 6) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -47,6 +47,9 @@ function CreateQuiz() {
   const [showResults, setShowResults] = useState(true)
   const [leaderboard, setLeaderboard] = useState(true)
   const [roomCode, setRoomCode] = useState("")
+  const [status, setStatus] = useState<"draft" | "waiting" | "running" | "finished">("draft")
+  const [category, setCategory] = useState("general")
+  const [customCategory, setCustomCategory] = useState("")
 
   useEffect(() => {
     setMounted(true)
@@ -88,6 +91,10 @@ function CreateQuiz() {
     if (!roomCode) return toast.error("Room code is required.")
 
     try {
+      const quizCategory = category === "custom" && customCategory.trim() ? customCategory.trim() : category
+      // Always store timeLimit as seconds (already in seconds from dropdown)
+      const timeLimitSeconds = parseInt(timeLimit, 10)
+
       // Save complete quiz data to created-quiz collection
       const docRef = await addDoc(collection(db, "created-quiz"), {
         title,
@@ -97,10 +104,10 @@ function CreateQuiz() {
         userId: user.uid,
         questionCount: questions.length,
         participants: 0,
-        status: "draft",
-        category: "general",
+        status,
+        category: quizCategory,
         settings: {
-          timeLimit: parseInt(timeLimit),
+          timeLimit: timeLimitSeconds,
           showResults,
           leaderboard,
         },
@@ -114,7 +121,7 @@ function CreateQuiz() {
 
       // Save metadata to quizzes collection
       await addDoc(collection(db, "quizzes"), {
-        id: docRef.id,  // Reference to the full quiz document
+        id: docRef.id,
         title,
         description,
         roomCode,
@@ -122,17 +129,21 @@ function CreateQuiz() {
         userId: user.uid,
         questionCount: questions.length,
         participants: 0,
-        status: "draft",
-        category: "general"
+        status,
+        category: quizCategory
       })
 
-      console.log("Quiz saved with ID:", docRef.id)
       toast.success("Quiz saved successfully!")
       router.push("/my-quizzes")
     } catch (error) {
       console.error("Error saving quiz:", error)
       toast.error("Error saving quiz.")
     }
+  }
+
+  const handleStartQuiz = () => {
+    setStatus("running")
+    toast.success("Quiz started!")
   }
 
   return (
@@ -163,6 +174,38 @@ function CreateQuiz() {
                   <div className="space-y-4">
                     <Label htmlFor="description">Description</Label>
                     <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Enter quiz description" />
+                  </div>
+                  {/* Category Dropdown */}
+                  <div className="space-y-4">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                      value={category}
+                      onValueChange={(val) => {
+                        setCategory(val)
+                        if (val !== "custom") setCustomCategory("")
+                      }}
+                    >
+                      <SelectTrigger className="w-full" id="category">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">General</SelectItem>
+                        <SelectItem value="education">Education</SelectItem>
+                        <SelectItem value="business">Business</SelectItem>
+                        <SelectItem value="conference">Conference</SelectItem>
+                        <SelectItem value="personality">Personality</SelectItem>
+                        <SelectItem value="product">Product</SelectItem>
+                        <SelectItem value="custom">Other (Enter category)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {category === "custom" && (
+                      <Input
+                        className="mt-2"
+                        placeholder="Enter custom category"
+                        value={customCategory}
+                        onChange={e => setCustomCategory(e.target.value)}
+                      />
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="room-code">Room Code</Label>
@@ -285,14 +328,6 @@ function CreateQuiz() {
                 <Plus className="h-5 w-5 mr-2" /> Add Question
               </Button>
             </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <Button onClick={saveQuiz} className="w-full py-4 mt-4">Save Quiz</Button>
-
-            </motion.div>
           </div>
         </div>
 
@@ -321,19 +356,13 @@ function CreateQuiz() {
                             <SelectValue placeholder="Time" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="15">15s</SelectItem>
-                            <SelectItem value="30">30s</SelectItem>
-                            <SelectItem value="60">60s</SelectItem>
+                            <SelectItem value="5">5s</SelectItem>
+                            <SelectItem value="10">10s</SelectItem>
                             <SelectItem value="120">2m</SelectItem>
+                            <SelectItem value="300">5m</SelectItem>
                             <SelectItem value="0">No limit</SelectItem>
                           </SelectContent>
                         </Select>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Theme</Label>
-                        <div className="text-sm text-muted-foreground">Choose quiz appearance</div>
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
@@ -376,9 +405,42 @@ function CreateQuiz() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Access Code:</span>
-                      <span className="font-medium">123-456</span>
+                      <span className="font-medium">{roomCode}</span>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <Card>
+                <CardContent >
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
+                    <Button onClick={saveQuiz} className="w-full py-4 mt-4">Save Quiz</Button>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
+                    <Button
+                      onClick={handleStartQuiz}
+                      className="w-full py-4 mt-2"
+                      disabled={status === "running" || status === "finished"}
+                      variant={status === "running" ? "secondary" : "default"}
+                    >
+                      {status === "running" ? "Quiz Running" : "Start Quiz"}
+                    </Button>
+                  </motion.div>
+
                 </CardContent>
               </Card>
             </motion.div>
