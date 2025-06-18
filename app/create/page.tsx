@@ -133,9 +133,16 @@ function CreateQuiz() {
         category: quizCategory
       })
 
+      //Update the Room_Code collections with the roomcode generated
+      await addDoc(collection(db, "Room_Code"), {
+        roomCode: roomCode,
+        createdAt: serverTimestamp(),
+      })
+
       toast.success("Quiz saved successfully!")
       router.push("/my-quizzes")
-    } catch (error) {
+    } 
+    catch (error) {
       console.error("Error saving quiz:", error)
       toast.error("Error saving quiz.")
     }
