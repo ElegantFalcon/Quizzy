@@ -8,6 +8,10 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase"; 
+import { toast } from "sonner";
+
 
 function JoinQuiz() {
     const [code, setCode] = useState("")
@@ -17,13 +21,26 @@ function JoinQuiz() {
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [timeLeft, setTimeLeft] = useState(30)
 
-    const handleJoin = () => {
+    const handleJoin = async () => {
         if (!joined) {
-            setJoined(true)
+            // Check if room code exists
+            const roomCodeRef = collection(db, "Room_Code");
+            //Fetching roomcode from table
+            const q = query(roomCodeRef, where("roomCode", "==", code));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+            //Room code exists
+            setJoined(true);
+            } else {
+            // Invalid code
+            toast.error("Invalid room code. Please try again.");
+            }
         } else {
-            setCurrentStep(1)
-        }
-    }
+            setCurrentStep(1);
+  }
+};
+
 
     useEffect(() => {
         if (currentStep === 1 && timeLeft > 0) {
