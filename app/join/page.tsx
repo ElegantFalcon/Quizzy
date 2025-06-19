@@ -8,7 +8,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase"; 
 import { toast } from "sonner";
 
@@ -81,6 +81,25 @@ function JoinQuiz() {
             // Only proceed if waiting room is active
             if (waitingRoomActive) {
                 if (currentStep === 0 && name) {
+                    // Store participant in Firestore
+                    try {
+                        // Get the quiz document reference (replace 'quizId' with the actual document id)
+                        const quizQ = query(collection(db, "created-quiz"), where("roomCode", "==", code));
+                        const quizSnap = await getDocs(quizQ);
+                        if (!quizSnap.empty) {
+                            const quizDocId = quizSnap.docs[0].id;
+                            // Create (or use) a document for this quiz in /participants
+                            const quizParticipantsRef = collection(db, "participants", quizDocId, "participants");
+                            await addDoc(quizParticipantsRef, {
+                                name,
+                                points: 0,
+                                joinedAt: new Date(),
+                            });
+                        }
+                    } catch {
+                        toast.error("Failed to join. Please try again.");
+                        return;
+                    }
                     setCurrentStep(1);
                     setWaitingForHost(true); // Now waiting for host to start quiz
                 }
