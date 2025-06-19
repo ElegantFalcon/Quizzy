@@ -61,7 +61,6 @@ export default function PresentQuiz() {
         correctAnswers: 3,
         totalAnswers: 5,
         streak: 3,
-        isCurrentUser: true,
       },
       {
         id: "user-5",
@@ -409,9 +408,6 @@ export default function PresentQuiz() {
                 >
                   <Leaderboard
                     participants={participants}
-                    title={`Leaderboard - Question ${currentQuestion + 1}`}
-                    description="Top participants by points"
-                    onClose={() => setShowLeaderboard(false)}
                   />
                 </motion.div>
               )}

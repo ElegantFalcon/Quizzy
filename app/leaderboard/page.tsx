@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
 import { Leaderboard, type Participant } from "@/components/leaderboard"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Shuffle } from "lucide-react"
 
 // Generate random participants
 const generateParticipants = (count: number): Participant[] => {
@@ -66,52 +63,11 @@ const generateParticipants = (count: number): Participant[] => {
 
 export default function LeaderboardDemo() {
   const [participants, setParticipants] = useState<Participant[]>([])
-  const [showLeaderboard, setShowLeaderboard] = useState(true)
-  const [questionNumber, setQuestionNumber] = useState(1)
-
   // Initialize participants
   useEffect(() => {
     setParticipants(generateParticipants(15))
   }, [])
 
-  // Shuffle scores and update positions
-  const shuffleScores = () => {
-    setParticipants((prev) => {
-      // Store previous positions
-      const prevPositions = prev.reduce(
-        (acc, p) => {
-          acc[p.id] = p.position
-          return acc
-        },
-        {} as Record<string, number>,
-      )
-
-      // Create new array with updated points
-      const updated = prev.map((p) => {
-        const pointsChange = Math.floor(Math.random() * 100) - 20 // Random change between -20 and +80
-        return {
-          ...p,
-          points: Math.max(0, p.points + pointsChange),
-          streak: Math.random() > 0.7 ? p.streak! + 1 : 0,
-          correctAnswers: Math.random() > 0.3 ? p.correctAnswers! + 1 : p.correctAnswers,
-          totalAnswers: p.totalAnswers! + 1,
-        }
-      })
-
-      // Sort by points
-      const sorted = [...updated].sort((a, b) => b.points - a.points)
-
-      // Update positions
-      return sorted.map((p, i) => ({
-        ...p,
-        position: i + 1,
-        previousPosition: prevPositions[p.id],
-      }))
-    })
-
-    setQuestionNumber((prev) => prev + 1)
-    setShowLeaderboard(true)
-  }
 
   return (
     <div className="container py-12">
