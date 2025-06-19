@@ -8,10 +8,9 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase"; 
 import { toast } from "sonner";
-
 
 function JoinQuiz() {
     const [code, setCode] = useState("")
@@ -20,27 +19,71 @@ function JoinQuiz() {
     const [currentStep, setCurrentStep] = useState(0)
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [timeLeft, setTimeLeft] = useState(30)
+    const [waitingRoomActive, setWaitingRoomActive] = useState(false)
+
+    // Listen for waiting room status after joining
+    useEffect(() => {
+        let unsub: (() => void) | undefined
+        if (joined && code) {
+            // Listen to the created-quiz collection for this room code
+            const q = query(collection(db, "created-quiz"), where("roomCode", "==", code))
+            unsub = onSnapshot(q, (snapshot) => {
+                if (!snapshot.empty) {
+                    const quiz = snapshot.docs[0].data()
+                    if (quiz.status === "waiting") {
+                        setWaitingRoomActive(true)
+                    } else {
+                        setWaitingRoomActive(false)
+                        setJoined(false)
+                        setCurrentStep(0)
+                        toast.error("Waiting room has been terminated.")
+                    }
+                } else {
+                    setWaitingRoomActive(false)
+                    setJoined(false)
+                    setCurrentStep(0)
+                    toast.error("Room not found.")
+                }
+            })
+        }
+        return () => unsub && unsub()
+    }, [joined, code])
 
     const handleJoin = async () => {
         if (!joined) {
             // Check if room code exists
             const roomCodeRef = collection(db, "Room_Code");
-            //Fetching roomcode from table
             const q = query(roomCodeRef, where("roomCode", "==", code));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-            //Room code exists
-            setJoined(true);
+                // Room code exists, now check if waiting room is active
+                const quizQ = query(collection(db, "created-quiz"), where("roomCode", "==", code));
+                const quizSnap = await getDocs(quizQ);
+                if (!quizSnap.empty) {
+                    const quiz = quizSnap.docs[0].data();
+                    if (quiz.status === "waiting") {
+                        setJoined(true);
+                        setWaitingRoomActive(true);
+                    } else {
+                        setWaitingRoomActive(false);
+                        toast.error("Waiting room has not started or has been terminated.");
+                    }
+                } else {
+                    toast.error("Quiz not found for this code.");
+                }
             } else {
-            // Invalid code
-            toast.error("Invalid room code. Please try again.");
+                toast.error("Invalid room code. Please try again.");
             }
         } else {
-            setCurrentStep(1);
-  }
-};
-
+            // Only proceed if waiting room is active
+            if (waitingRoomActive) {
+                setCurrentStep(1);
+            } else {
+                toast.error("Waiting room is not active.");
+            }
+        }
+    };
 
     useEffect(() => {
         if (currentStep === 1 && timeLeft > 0) {

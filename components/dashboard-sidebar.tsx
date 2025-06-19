@@ -31,7 +31,7 @@ export function DashboardSidebar() {
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
               Q
             </div>
-            QuizApp
+            Quizzy
           </Link>
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />

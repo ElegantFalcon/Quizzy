@@ -243,6 +243,22 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
     }
   }
 
+  const handleStartWaitingRoom = async () => {
+    setStatus("waiting")
+    toast.success("Waiting room started!")
+    if (isEditing && quizId) {
+      await updateDoc(doc(db, "created-quiz", quizId), { status: "waiting" })
+    }
+  }
+
+  const handleStopWaitingRoom = async () => {
+    setStatus("draft")
+    toast.info("Waiting room stopped.")
+    if (isEditing && quizId) {
+      await updateDoc(doc(db, "created-quiz", quizId), { status: "draft" })
+    }
+  }
+
   const handleStartQuiz = () => {
     setStatus("running")
     toast.success("Quiz started!")
@@ -530,6 +546,40 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
                       {isEditing ? "Update Quiz" : "Save Quiz"}
                     </Button>
                   </motion.div>
+
+                  {/* Start Waiting Room Button */}
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
+                    <Button
+                      onClick={handleStartWaitingRoom}
+                      className="w-full py-4 mt-2"
+                      disabled={status === "waiting" || status === "running" || status === "finished"}
+                      variant={status === "waiting" ? "secondary" : "default"}
+                    >
+                      {status === "waiting" ? "Waiting Room Active" : "Start Waiting Room"}
+                    </Button>
+                  </motion.div>
+
+                  {/* Stop Waiting Room Button */}
+                  {status === "waiting" && (
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Button
+                        onClick={handleStopWaitingRoom}
+                        className="w-full py-4 mt-2"
+                        variant="destructive"
+                      >
+                        Stop Waiting Room
+                      </Button>
+                    </motion.div>
+                  )}
+
                   <motion.div
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.99 }}
