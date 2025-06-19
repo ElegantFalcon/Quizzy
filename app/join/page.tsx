@@ -20,6 +20,7 @@ function JoinQuiz() {
     const [selectedOption, setSelectedOption] = useState<number | null>(null)
     const [timeLeft, setTimeLeft] = useState(30)
     const [waitingRoomActive, setWaitingRoomActive] = useState(false)
+    const [waitingForHost, setWaitingForHost] = useState(false)
 
     // Listen for waiting room status after joining
     useEffect(() => {
@@ -65,6 +66,7 @@ function JoinQuiz() {
                     if (quiz.status === "waiting") {
                         setJoined(true);
                         setWaitingRoomActive(true);
+                        setWaitingForHost(false); // Not waiting for host yet, just joined
                     } else {
                         setWaitingRoomActive(false);
                         toast.error("Waiting room has not started or has been terminated.");
@@ -78,7 +80,10 @@ function JoinQuiz() {
         } else {
             // Only proceed if waiting room is active
             if (waitingRoomActive) {
-                setCurrentStep(1);
+                if (currentStep === 0 && name) {
+                    setCurrentStep(1);
+                    setWaitingForHost(true); // Now waiting for host to start quiz
+                }
             } else {
                 toast.error("Waiting room is not active.");
             }
@@ -207,6 +212,26 @@ function JoinQuiz() {
                                         Continue <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
                                 </motion.div>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                ) : waitingForHost ? (
+                    <motion.div
+                        key="waiting-for-host"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex flex-col items-center justify-center flex-1 p-4"
+                    >
+                        <div className="max-w-md w-full space-y-8 text-center">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            >
+                                <h1 className="text-3xl font-bold tracking-tight">Waiting for host to start quiz...</h1>
+                                <p className="mt-4 text-muted-foreground">Please wait. The quiz will begin soon.</p>
                             </motion.div>
                         </div>
                     </motion.div>

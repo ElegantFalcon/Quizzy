@@ -9,7 +9,6 @@ import { Toaster } from "sonner"
 export const metadata: Metadata = {
   title: "Quizzy",
   description: "Create and join interactive quizzes",
-  icons:'./favicon.png',
 }
 
 export default function RootLayout({
