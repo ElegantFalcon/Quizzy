@@ -122,73 +122,15 @@ export default function LeaderboardDemo() {
         className="max-w-3xl mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Leaderboard Demo</h1>
-          <p className="text-muted-foreground">Interactive leaderboard with animations for quiz participants</p>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Leaderboard</h1>
         </div>
 
         <div className="space-y-8">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Question {questionNumber} Results</h2>
-            <Button onClick={shuffleScores} className="gap-2">
-              <Shuffle className="h-4 w-4" />
-              Next Question
-            </Button>
-          </div>
-
-          <Tabs defaultValue="leaderboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-              <TabsTrigger value="variants">Top 3</TabsTrigger>
-            </TabsList>
-            <TabsContent value="leaderboard" className="mt-4">
-              {showLeaderboard && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <Leaderboard
-                    participants={participants}
-                    title={`Leaderboard - Question ${questionNumber}`}
-                    description="Top participants by points"
-                    onClose={() => setShowLeaderboard(false)}
-                  />
-                </motion.div>
-              )}
-
-              {!showLeaderboard && (
-                <div className="text-center py-12 border rounded-lg">
-                  <p className="text-muted-foreground mb-4">Leaderboard is hidden</p>
-                  <Button onClick={() => setShowLeaderboard(true)}>Show Leaderboard</Button>
-                </div>
-              )}
-            </TabsContent>
-            <TabsContent value="variants" className="mt-4 space-y-8">
               <div>
-                <h3 className="text-lg font-medium mb-4">Compact Leaderboard (Top 3)</h3>
                 <Leaderboard
                   participants={participants}
-                  title="Top Players"
-                  description="Leading participants"
-                  limit={3}
-                  showExpandButton={false}
                 />
               </div>
-
-              <div>
-                <h3 className="text-lg font-medium mb-4">Full Leaderboard</h3>
-                <Leaderboard
-                  participants={participants}
-                  title="Complete Rankings"
-                  description="All participants ranked by score"
-                  limit={participants.length}
-                  showExpandButton={false}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-
-         
         </div>
       </motion.div>
     </div>
