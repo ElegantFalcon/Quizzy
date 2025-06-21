@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart3, Home, LayoutDashboard, Library, Plus, Settings, User } from "lucide-react"
+import { BarChart3, Library, Plus, Settings, User } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -41,31 +41,16 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+
         <div className="px-4 py-2">
+
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button className="w-full justify-start gap-2" size="sm">
               <Plus className="h-4 w-4" /> New Quiz
             </Button>
           </motion.div>
         </div>
-
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
-              <Link href="/dashboard">
-                <Home className="h-4 w-4" />
-                <span>Home</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === "/create"}>
-              <Link href="/create">
-                <LayoutDashboard className="h-4 w-4" />
-                <span>Create Quiz</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild isActive={pathname === "/my-quizzes"}>
               <Link href="/my-quizzes">

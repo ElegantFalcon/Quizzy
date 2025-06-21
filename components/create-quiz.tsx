@@ -19,7 +19,6 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, query, whe
 import { useAuth } from "@/contexts/auth-context"
 import { Toaster, toast } from "sonner"
 
-// Add this type at the top (after imports)
 type Question = {
   id: number
   type: string
@@ -139,7 +138,7 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
       type: "multiple-choice",
       text: "",
       options: ["", "", "", ""],
-      correctOption: 0, // Add this field
+      correctOption: 0, 
     }
     setQuestions([...questions, newQuestion])
   }

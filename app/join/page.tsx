@@ -23,7 +23,6 @@ interface QuizData {
         options: string[];
         correctOption: number;
     }[];
-    // Add other fields as needed
 }
 
 function JoinQuiz() {
@@ -52,7 +51,7 @@ function JoinQuiz() {
                         setWaitingRoomActive(true)
                     } else if (quiz.status === "running") {
                         setWaitingRoomActive(false)
-                        setWaitingForHost(false) // <-- Add this line
+                        setWaitingForHost(false) 
                         setCurrentStep(2); // Show quiz
                     } else if (quiz.status === "finished") {
                         setCurrentStep(3); // Show results
@@ -119,7 +118,7 @@ function JoinQuiz() {
                             });
 
                             // RTDB: Add participant for real-time leaderboard
-                            const rtdb = getDatabase(); // Make sure rtdb is initialized in your firebase config
+                            const rtdb = getDatabase(); 
                             await set(
                                 ref(rtdb, `leaderboards/${quizDocId}/participants/${participantDoc.id}`),
                                 {
