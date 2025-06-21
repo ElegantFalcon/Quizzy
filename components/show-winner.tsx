@@ -4,7 +4,9 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export function ShowWinnerComponent({ code }: { code: string }) {
-  const [winner, setWinner] = useState<{ name: string; points: number } | null>(null);
+  type Participant = { name: string; points: number };
+
+  const [winner, setWinner] = useState<Participant | null>(null);
 
   useEffect(() => {
     // Find quizDocId from room code
@@ -18,7 +20,7 @@ export function ShowWinnerComponent({ code }: { code: string }) {
         onValue(leaderboardRef, (snapshot) => {
           const data = snapshot.val();
           if (data) {
-            const arr = Object.values(data) as any[];
+            const arr: Participant[] = Object.values(data);
             arr.sort((a, b) => b.points - a.points);
             setWinner(arr[0]);
           }

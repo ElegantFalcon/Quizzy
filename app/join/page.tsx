@@ -14,6 +14,18 @@ import { toast } from "sonner";
 import { getDatabase, ref, set } from "firebase/database"; // RTDB imports
 import { ShowWinnerComponent } from "@/components/show-winner"
 
+interface QuizData {
+    status: string;
+    roomCode: string;
+    currentQuestion: number;
+    questions: {
+        text: string;
+        options: string[];
+        correctOption: number;
+    }[];
+    // Add other fields as needed
+}
+
 function JoinQuiz() {
     const [code, setCode] = useState("")
     const [joined, setJoined] = useState(false)
@@ -23,7 +35,7 @@ function JoinQuiz() {
     const [timeLeft, setTimeLeft] = useState(30)
     const [waitingRoomActive, setWaitingRoomActive] = useState(false)
     const [waitingForHost, setWaitingForHost] = useState(false)
-    const [quizData, setQuizData] = useState<any>(null);
+    const [quizData, setQuizData] = useState<QuizData | null>(null);
     const [questionTimer, setQuestionTimer] = useState(4);
 
     // Listen for waiting room status after joining
@@ -35,7 +47,7 @@ function JoinQuiz() {
             unsub = onSnapshot(q, (snapshot) => {
                 if (!snapshot.empty) {
                     const quiz = snapshot.docs[0].data()
-                    setQuizData(quiz);
+                    setQuizData(quiz as QuizData);
                     if (quiz.status === "waiting") {
                         setWaitingRoomActive(true)
                     } else if (quiz.status === "running") {
@@ -148,7 +160,7 @@ function JoinQuiz() {
             }, 1000);
             return () => clearInterval(timer);
         }
-    }, [quizData?.currentQuestion, currentStep, quizData?.status]);
+    }, [quizData, quizData?.currentQuestion, currentStep, quizData?.status]);
 
     // Add this function inside your JoinQuiz component
     const handleOptionSelect = async (index: number) => {

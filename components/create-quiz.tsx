@@ -19,6 +19,15 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, query, whe
 import { useAuth } from "@/contexts/auth-context"
 import { Toaster, toast } from "sonner"
 
+// Add this type at the top (after imports)
+type Question = {
+  id: number
+  type: string
+  text: string
+  options: string[]
+  correctOption: number
+}
+
 function generateRoomCode(length = 6) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   let code = ""
@@ -50,7 +59,6 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
   const [status, setStatus] = useState<"draft" | "waiting" | "running" | "finished">("draft")
   const [category, setCategory] = useState("general")
   const [customCategory, setCustomCategory] = useState("")
-  const [_loading, setLoading] = useState(false)
 
 
   useEffect(() => {
@@ -63,7 +71,6 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
   useEffect(() => {
     const fetchQuizData = async () => {
       if (isEditing && quizId && user) {
-        setLoading(true)
         try {
           // Get the full quiz data from created-quiz collection
           const quizDocRef = doc(db, "created-quiz", quizId)
@@ -106,7 +113,7 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
             if (quizData.questions && Array.isArray(quizData.questions)) {
               // Ensure each question has correctOption
               setQuestions(
-                quizData.questions.map((q: any) => ({
+                quizData.questions.map((q: Question) => ({
                   ...q,
                   correctOption: typeof q.correctOption === "number" ? q.correctOption : 0,
                 }))
@@ -119,8 +126,6 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
         } catch (error) {
           console.error("Error fetching quiz:", error)
           toast.error("Error loading quiz data")
-        } finally {
-          setLoading(false)
         }
       }
     }
