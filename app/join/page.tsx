@@ -8,9 +8,11 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { collection, query, where, getDocs, onSnapshot, addDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase"; 
 import { toast } from "sonner";
+import { getDatabase, ref, set } from "firebase/database"; // RTDB imports
+import { ShowWinnerComponent } from "@/components/show-winner"
 
 function JoinQuiz() {
     const [code, setCode] = useState("")
@@ -21,6 +23,8 @@ function JoinQuiz() {
     const [timeLeft, setTimeLeft] = useState(30)
     const [waitingRoomActive, setWaitingRoomActive] = useState(false)
     const [waitingForHost, setWaitingForHost] = useState(false)
+    const [quizData, setQuizData] = useState<any>(null);
+    const [questionTimer, setQuestionTimer] = useState(4);
 
     // Listen for waiting room status after joining
     useEffect(() => {
@@ -31,8 +35,15 @@ function JoinQuiz() {
             unsub = onSnapshot(q, (snapshot) => {
                 if (!snapshot.empty) {
                     const quiz = snapshot.docs[0].data()
+                    setQuizData(quiz);
                     if (quiz.status === "waiting") {
                         setWaitingRoomActive(true)
+                    } else if (quiz.status === "running") {
+                        setWaitingRoomActive(false)
+                        setWaitingForHost(false) // <-- Add this line
+                        setCurrentStep(2); // Show quiz
+                    } else if (quiz.status === "finished") {
+                        setCurrentStep(3); // Show results
                     } else {
                         setWaitingRoomActive(false)
                         setJoined(false)
@@ -81,27 +92,37 @@ function JoinQuiz() {
             // Only proceed if waiting room is active
             if (waitingRoomActive) {
                 if (currentStep === 0 && name) {
-                    // Store participant in Firestore
                     try {
-                        // Get the quiz document reference (replace 'quizId' with the actual document id)
+                        // Get the quiz document reference
                         const quizQ = query(collection(db, "created-quiz"), where("roomCode", "==", code));
                         const quizSnap = await getDocs(quizQ);
                         if (!quizSnap.empty) {
                             const quizDocId = quizSnap.docs[0].id;
-                            // Create (or use) a document for this quiz in /participants
+                            // Firestore: Add participant
                             const quizParticipantsRef = collection(db, "participants", quizDocId, "participants");
-                            await addDoc(quizParticipantsRef, {
+                            const participantDoc = await addDoc(quizParticipantsRef, {
                                 name,
                                 points: 0,
                                 joinedAt: new Date(),
                             });
+
+                            // RTDB: Add participant for real-time leaderboard
+                            const rtdb = getDatabase(); // Make sure rtdb is initialized in your firebase config
+                            await set(
+                                ref(rtdb, `leaderboards/${quizDocId}/participants/${participantDoc.id}`),
+                                {
+                                    name,
+                                    points: 0,
+                                    joinedAt: Date.now(),
+                                }
+                            );
                         }
                     } catch {
                         toast.error("Failed to join. Please try again.");
                         return;
                     }
                     setCurrentStep(1);
-                    setWaitingForHost(true); // Now waiting for host to start quiz
+                    setWaitingForHost(true);
                 }
             } else {
                 toast.error("Waiting room is not active.");
@@ -118,6 +139,57 @@ function JoinQuiz() {
         }
     }, [currentStep, timeLeft])
 
+    // Timer for each question
+    useEffect(() => {
+        if (currentStep === 2 && quizData && quizData.status === "running") {
+            setQuestionTimer(4);
+            const timer = setInterval(() => {
+                setQuestionTimer((t) => (t > 0 ? t - 1 : 0));
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [quizData?.currentQuestion, currentStep, quizData?.status]);
+
+    // Add this function inside your JoinQuiz component
+    const handleOptionSelect = async (index: number) => {
+        setSelectedOption(index);
+
+        // Only allow answer if timer is running and quizData is available
+        if (
+            quizData &&
+            quizData.questions &&
+            typeof quizData.currentQuestion === "number" &&
+            questionTimer > 0
+        ) {
+            const correctOption = quizData.questions[quizData.currentQuestion].correctOption;
+            if (index === correctOption) {
+                // Find participant doc
+                const quizQ = query(collection(db, "created-quiz"), where("roomCode", "==", code));
+                const quizSnap = await getDocs(quizQ);
+                if (!quizSnap.empty) {
+                    const quizDocId = quizSnap.docs[0].id;
+                    // Find participant by name (or use a better unique identifier if available)
+                    const participantsRef = collection(db, "participants", quizDocId, "participants");
+                    const participantQ = query(participantsRef, where("name", "==", name));
+                    const participantSnap = await getDocs(participantQ);
+                    if (!participantSnap.empty) {
+                        const participantDoc = participantSnap.docs[0];
+                        // Update points in Firestore
+                        await updateDoc(doc(db, "participants", quizDocId, "participants", participantDoc.id), {
+                            points: (participantDoc.data().points || 0) + 1,
+                        });
+                        // Update points in RTDB
+                        const rtdb = getDatabase();
+                        await set(
+                            ref(rtdb, `leaderboards/${quizDocId}/participants/${participantDoc.id}/points`),
+                            (participantDoc.data().points || 0) + 1
+                        );
+                    }
+                }
+            }
+        }
+    };
+
     return (
         <div className="flex min-h-screen flex-col">
             <header className="border-b">
@@ -126,7 +198,7 @@ function JoinQuiz() {
                         <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                             Q
                         </div>
-                        QuizApp
+                        Quizzy
                     </Link>
                     <ThemeToggle />
                 </div>
@@ -254,80 +326,52 @@ function JoinQuiz() {
                             </motion.div>
                         </div>
                     </motion.div>
-                ) : (
-                    <motion.div
-                        key="quiz"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="flex flex-col items-center justify-center flex-1 p-4 bg-gradient-to-b from-background to-muted/30"
-                    >
+                ) : currentStep === 2 && quizData && quizData.status === "running" ? (
+                    <motion.div key="quiz" className="flex flex-col items-center justify-center flex-1 p-4 bg-gradient-to-b from-background to-muted/30">
                         <div className="max-w-2xl w-full space-y-8 text-center">
                             <div className="flex justify-between items-center w-full">
                                 <div className="text-left">
-                                    <div className="text-sm font-medium text-muted-foreground">Question 1 of 5</div>
+                                    <div className="text-sm font-medium text-muted-foreground">
+                                        Question {quizData.currentQuestion + 1} of {quizData.questions.length}
+                                    </div>
                                     <div className="text-xl font-bold">Multiple Choice</div>
                                 </div>
-                                <motion.div
-                                    className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium"
-                                    animate={{
-                                        scale: timeLeft <= 5 ? [1, 1.1, 1] : 1,
-                                        color:
-                                            timeLeft <= 5
-                                                ? ["hsl(var(--primary))", "hsl(var(--destructive))", "hsl(var(--primary))"]
-                                                : "hsl(var(--primary))",
-                                    }}
-                                    transition={{
-                                        duration: 0.5,
-                                        repeat: timeLeft <= 5 ? Number.POSITIVE_INFINITY : 0,
-                                        repeatType: "loop",
-                                    }}
-                                >
-                                    {timeLeft}s
+                                <motion.div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                                    {questionTimer}s
                                 </motion.div>
                             </div>
-
-                            <motion.div
-                                className="py-8"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2, duration: 0.5 }}
-                            >
-                                <h2 className="text-3xl font-bold mb-8">What is your favorite color?</h2>
-
+                            <motion.div className="py-8">
+                                <h2 className="text-3xl font-bold mb-8">
+                                    {quizData.questions[quizData.currentQuestion]?.text}
+                                </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto">
-                                    {["Red", "Blue", "Green", "Yellow"].map((option, index) => (
-                                        <motion.div
-                                            key={index}
-                                            whileHover={{ scale: 1.03 }}
-                                            whileTap={{ scale: 0.97 }}
-                                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                                    {quizData.questions[quizData.currentQuestion]?.options.map((option: string, index: number) => (
+                                        <Button
+                                          key={index}
+                                          variant={selectedOption === index ? "default" : "outline"}
+                                          className={`h-24 text-lg transition-all duration-300 border-2 w-full ${selectedOption === index ? "bg-primary text-primary-foreground" : ""}`}
+                                          onClick={() => handleOptionSelect(index)}
+                                          disabled={questionTimer === 0}
                                         >
-                                            <Button
-                                                variant={selectedOption === index ? "default" : "outline"}
-                                                className={`h-24 text-lg transition-all duration-300 border-2 w-full ${selectedOption === index ? "bg-primary text-primary-foreground" : ""
-                                                    }`}
-                                                onClick={() => setSelectedOption(index)}
-                                            >
-                                                <span className="mr-2 opacity-70">{String.fromCharCode(65 + index)}</span> {option}
-                                            </Button>
-                                        </motion.div>
+                                          <span className="mr-2 opacity-70">{String.fromCharCode(65 + index)}</span> {option}
+                                        </Button>
                                     ))}
                                 </div>
                             </motion.div>
-
-                            <motion.div
-                                className="text-sm text-muted-foreground"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.4, duration: 0.5 }}
-                            >
-                                Waiting for host to continue...
+                            <motion.div className="text-sm text-muted-foreground">
+                                Waiting for next question...
                             </motion.div>
                         </div>
                     </motion.div>
-                )}
+                ) : currentStep === 3 ? (
+                    <motion.div key="quiz-ended" className="flex flex-col items-center justify-center flex-1 p-4">
+                        <div className="max-w-md w-full space-y-8 text-center">
+                            <h1 className="text-3xl font-bold tracking-tight">Quiz Ended!</h1>
+                            {/* Fetch and show winner from leaderboard */}
+                            <ShowWinnerComponent code={code} />
+                        </div>
+                    </motion.div>
+                ) : null}
             </AnimatePresence>
         </div>
     )

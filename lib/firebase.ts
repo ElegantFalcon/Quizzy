@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { browserLocalPersistence, setPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database"; // <-- Add this import
 
 // Replace with your actual config from Firebase Console
 const firebaseConfig = {
@@ -12,6 +13,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
 };
 
 const app = initializeApp(firebaseConfig);
@@ -27,6 +29,7 @@ const auth = getAuth(app);
 })();
 
 const db = getFirestore(app);
+const rtdb = getDatabase(app); // <-- Initialize RTDB
 const provider = new GoogleAuthProvider();
 
 // Configure Google Auth Provider
@@ -34,4 +37,4 @@ provider.setCustomParameters({
   prompt: 'select_account'
 });
 
-export { auth, db, provider };
+export { auth, db, rtdb, provider }; // <-- Export rtdb

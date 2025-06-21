@@ -37,6 +37,7 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
       type: "multiple-choice",
       text: "What is your favorite color?",
       options: ["Red", "Blue", "Green", "Yellow"],
+      correctOption: 0,
     },
   ])
 
@@ -49,7 +50,6 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
   const [status, setStatus] = useState<"draft" | "waiting" | "running" | "finished">("draft")
   const [category, setCategory] = useState("general")
   const [customCategory, setCustomCategory] = useState("")
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_loading, setLoading] = useState(false)
 
 
@@ -104,7 +104,13 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
             
             // Set questions
             if (quizData.questions && Array.isArray(quizData.questions)) {
-              setQuestions(quizData.questions)
+              // Ensure each question has correctOption
+              setQuestions(
+                quizData.questions.map((q: any) => ({
+                  ...q,
+                  correctOption: typeof q.correctOption === "number" ? q.correctOption : 0,
+                }))
+              )
             }
           } else {
             toast.error("Quiz not found")
@@ -128,6 +134,7 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
       type: "multiple-choice",
       text: "",
       options: ["", "", "", ""],
+      correctOption: 0, // Add this field
     }
     setQuestions([...questions, newQuestion])
   }
@@ -259,10 +266,35 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
     }
   }
 
-  const handleStartQuiz = () => {
-    setStatus("running")
-    toast.success("Quiz started!")
+  const handleStartQuiz = async () => {
+    setStatus("running");
+    toast.success("Quiz started!");
+    if (isEditing && quizId) {
+      await updateDoc(doc(db, "created-quiz", quizId), { status: "running", currentQuestion: 0 });
+    }
   }
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (status === "running" && isEditing && quizId) {
+      let currentQ = 0;
+      interval = setInterval(async () => {
+        // Fetch latest quiz doc
+        const quizDoc = await getDoc(doc(db, "created-quiz", quizId));
+        const quizData = quizDoc.data();
+        if (quizData) {
+          currentQ = quizData.currentQuestion ?? 0;
+          if (currentQ < questions.length - 1) {
+            await updateDoc(doc(db, "created-quiz", quizId), { currentQuestion: currentQ + 1 });
+          } else {
+            await updateDoc(doc(db, "created-quiz", quizId), { status: "finished" });
+            clearInterval(interval);
+          }
+        }
+      }, 4000);
+    }
+    return () => clearInterval(interval);
+  }, [status, isEditing, quizId, questions.length]);
 
   return (
     <div className="container py-6 ml-[300px]">
@@ -414,6 +446,18 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
                         <div className="space-y-2">
                           {question.options.map((option, optIndex) => (
                             <div key={optIndex} className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name={`correct-${question.id}`}
+                                checked={question.correctOption === optIndex}
+                                onChange={() => {
+                                  const newQuestions = [...questions]
+                                  newQuestions[index].correctOption = optIndex
+                                  setQuestions(newQuestions)
+                                }}
+                                className="accent-primary"
+                                style={{ width: 18, height: 18 }}
+                              />
                               <div className="bg-muted w-6 h-6 rounded-full flex items-center justify-center font-medium text-sm">
                                 {String.fromCharCode(65 + optIndex)}
                               </div>
@@ -426,7 +470,9 @@ export default function CreateQuiz({ quizId, isEditing }: { quizId?: string; isE
                                 }}
                                 placeholder={`Option ${optIndex + 1}`}
                               />
-
+                              {question.correctOption === optIndex && (
+                                <span className="ml-2 text-green-600 text-xs font-semibold">Correct</span>
+                              )}
                             </div>
                           ))}
 
