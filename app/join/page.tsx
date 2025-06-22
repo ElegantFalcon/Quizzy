@@ -8,7 +8,7 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot, addDoc, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "@/lib/firebase"; 
 import { toast } from "sonner";
 import { getDatabase, ref, set } from "firebase/database"; // RTDB imports
@@ -185,15 +185,18 @@ function JoinQuiz() {
                     const participantSnap = await getDocs(participantQ);
                     if (!participantSnap.empty) {
                         const participantDoc = participantSnap.docs[0];
-                        // Update points in Firestore
+                        // Atomically increment points in Firestore
                         await updateDoc(doc(db, "participants", quizDocId, "participants", participantDoc.id), {
-                            points: (participantDoc.data().points || 0) + 1,
+                            points: increment(1),
                         });
+                        // Fetch the updated points value
+                        const updatedDoc = await getDocs(query(participantsRef, where("name", "==", name)));
+                        const updatedPoints = updatedDoc.docs[0].data().points || 0;
                         // Update points in RTDB
                         const rtdb = getDatabase();
                         await set(
                             ref(rtdb, `leaderboards/${quizDocId}/participants/${participantDoc.id}/points`),
-                            (participantDoc.data().points || 0) + 1
+                            updatedPoints
                         );
                     }
                 }
